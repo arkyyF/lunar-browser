@@ -65,7 +65,6 @@ thiserror = "1.0"
 anyhow = "1.0"
 
 # Ad-block / filter parsing
-adblock = "0.9"
 
 # Compression (for filter list downloads)
 flate2 = "1.0"
