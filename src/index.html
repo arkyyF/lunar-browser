@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="moonlit-dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' tauri: asset:; img-src 'self' data: https: tauri: asset:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https: wss: tauri: ipc: http://ipc.localhost; frame-src https:; frame-ancestors 'none'" />
+  <title>Lunar Browser</title>
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/moonlit-dark.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+</head>
+<body class="lunar-shell" data-os="unknown">
+  <!-- Titlebar (draggable on macOS, integrated on Windows/Linux) -->
+  <header class="titlebar" data-tauri-drag-region>
+    <div class="titlebar__logo">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <defs>
+          <radialGradient id="moonGrad" cx="35%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#E8ECF1" />
+            <stop offset="55%" stop-color="#C0C8D0" />
+            <stop offset="100%" stop-color="#5E6878" />
+          </radialGradient>
+        </defs>
+        <circle cx="12" cy="12" r="10" fill="url(#moonGrad)" />
+        <circle cx="9" cy="9" r="1.4" fill="#0B0E14" opacity="0.45" />
+        <circle cx="15" cy="14" r="1.0" fill="#0B0E14" opacity="0.35" />
+        <circle cx="13" cy="17" r="0.6" fill="#0B0E14" opacity="0.3" />
+      </svg>
+      <span class="titlebar__title">Lunar</span>
+    </div>
+
+    <div class="titlebar__center" data-tauri-drag-region>
+      <!-- Omnibox lives here -->
+      <div class="omnibox" id="omnibox" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-label="Search or type URL">
+        <span class="omnibox__lock" id="omniboxLock" title="Connection secure">
+          <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M8 1a3 3 0 0 0-3 3v2H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1V4a3 3 0 0 0-3-3zm-1 5V4a1 1 0 1 1 2 0v2H7z"/></svg>
+        </span>
+        <input
+          type="text"
+          id="omniboxInput"
+          class="omnibox__input"
+          placeholder="Search Google or type a URL"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="omnibox__action" id="omniboxReload" title="Reload (Cmd/Ctrl+R)" aria-label="Reload">
+          <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .909-.417A6 6 0 1 1 8 2v1z"/><path fill="currentColor" d="M8 4.5a.5.5 0 0 1-.5-.5V1.5a.5.5 0 0 1 .276-.447.5.5 0 0 1 .525.043l2.5 2a.5.5 0 0 1-.001.808l-2.5 2A.5.5 0 0 1 8 5.5V4.5z"/></svg>
+        </button>
+        <ul class="omnibox__suggestions" id="omniboxSuggestions" role="listbox" hidden></ul>
+      </div>
+    </div>
+
+    <div class="titlebar__right">
+      <button class="iconbtn" id="cmdPaletteBtn" title="Command palette (Cmd/Ctrl+K)" aria-label="Command palette">
+        <svg viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M4.5 2h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm1 3v1h5V5h-5zm0 2.5v1h5v-1h-5zm0 2.5v1h3v-1h-3z"/></svg>
+      </button>
+      <button class="iconbtn" id="downloadsBtn" title="Downloads" aria-label="Downloads">
+        <svg viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M8 1a1 1 0 0 1 1 1v6.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L7 8.586V2a1 1 0 0 1 1-1zM3 13a1 1 0 1 0 0 2h10a1 1 0 1 0 0-2H3z"/></svg>
+      </button>
+      <button class="iconbtn" id="menuBtn" title="Menu" aria-label="Menu">
+        <svg viewBox="0 0 16 16" width="16" height="16"><circle cx="3" cy="8" r="1.4" fill="currentColor"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/><circle cx="13" cy="8" r="1.4" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <!-- Sidebar: workspaces + vertical tabs -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__workspaces" id="workspaces">
+        <!-- Workspaces rendered here -->
+      </div>
+
+      <div class="sidebar__tabs" id="tabStrip" role="tablist" aria-label="Tabs">
+        <!-- Tab cards rendered here -->
+        <button class="tab-card tab-card--new" id="newTabBtn" title="New tab (Cmd/Ctrl+T)" aria-label="New tab">
+          <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2z"/></svg>
+        </button>
+      </div>
+
+      <div class="sidebar__footer">
+        <div class="ram-meter" id="ramMeter" title="Memory usage">
+          <div class="ram-meter__bar"><div class="ram-meter__fill" id="ramMeterFill" style="width:0%"></div></div>
+          <div class="ram-meter__label" id="ramMeterLabel">0 / 1024 MB</div>
+        </div>
+        <button class="iconbtn" id="sidebarToggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+          <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M2 3h12v2H2V3zm0 4h12v2H2V7zm0 4h8v2H2v-2z"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Content area: webviews + split view -->
+    <section class="content" id="content">
+      <div class="content__split" id="contentSplit">
+        <!-- Primary webview -->
+        <div class="webview-host webview-host--primary" id="webviewHostPrimary" data-empty="true">
+          <div class="newtab" id="newTabPage">
+            <div class="newtab__hero">
+              <div class="newtab__moon"></div>
+              <h1 class="newtab__title">Lunar</h1>
+              <p class="newtab__subtitle">Browse lighter. Browse quieter.</p>
+            </div>
+            <div class="newtab__search">
+              <input type="text" id="newtabSearch" placeholder="Search Google or type a URL" autocomplete="off" />
+            </div>
+            <div class="newtab__shortcuts" id="newtabShortcuts">
+              <!-- Shortcuts rendered here -->
+            </div>
+          </div>
+        </div>
+        <!-- Secondary webview (split view, hidden by default) -->
+        <div class="webview-host webview-host--secondary" id="webviewHostSecondary" data-empty="true" hidden></div>
+      </div>
+      <div class="content__divider" id="contentDivider" hidden></div>
+    </section>
+  </main>
+
+  <!-- Command palette overlay -->
+  <div class="palette" id="cmdPalette" hidden role="dialog" aria-modal="true" aria-label="Command palette">
+    <div class="palette__backdrop" id="paletteBackdrop"></div>
+    <div class="palette__panel">
+      <input type="text" id="paletteInput" class="palette__input" placeholder="Type a command, search tabs, or open URL…" autocomplete="off" spellcheck="false" />
+      <ul class="palette__results" id="paletteResults" role="listbox"></ul>
+      <div class="palette__footer">
+        <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+        <span><kbd>↵</kbd> select</span>
+        <span><kbd>Esc</kbd> close</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Downloads panel -->
+  <div class="downloads-panel" id="downloadsPanel" hidden>
+    <div class="downloads-panel__header">
+      <h2>Downloads</h2>
+      <button class="iconbtn" id="downloadsClose" aria-label="Close">✕</button>
+    </div>
+    <ul class="downloads-panel__list" id="downloadsList"></ul>
+  </div>
+
+  <!-- Menu panel -->
+  <div class="menu-panel" id="menuPanel" hidden>
+    <ul class="menu-panel__list">
+      <li data-action="new-tab">New Tab <kbd>⌘T</kbd></li>
+      <li data-action="new-incognito">New Incognito Window <kbd>⌘⇧N</kbd></li>
+      <li data-action="bookmarks">Bookmarks</li>
+      <li data-action="history">History</li>
+      <li data-action="downloads">Downloads <kbd>⌘J</kbd></li>
+      <li data-action="split">Toggle Split View <kbd>⌘\\</kbd></li>
+      <li class="sep"></li>
+      <li data-action="adblock-toggle">Ad-block: <span id="adblockStatus">On</span></li>
+      <li data-action="privacy-toggle">Strict Privacy: <span id="privacyStatus">On</span></li>
+      <li class="sep"></li>
+      <li data-action="settings">Settings</li>
+      <li data-action="about">About Lunar</li>
+    </ul>
+  </div>
+
+  <!-- Settings overlay -->
+  <div class="settings" id="settingsOverlay" hidden role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="settings__backdrop" id="settingsBackdrop"></div>
+    <div class="settings__panel">
+      <header class="settings__header">
+        <h2>Settings</h2>
+        <button class="iconbtn" id="settingsClose" aria-label="Close">✕</button>
+      </header>
+      <div class="settings__body" id="settingsBody">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- Scripts: vanilla JS, no bundler. Loaded as modules. -->
+  <script type="module" src="lib/tauri-bridge.js"></script>
+  <script type="module" src="components/tabstrip.js"></script>
+  <script type="module" src="components/omnibox.js"></script>
+  <script type="module" src="components/palette.js"></script>
+  <script type="module" src="components/workspaces.js"></script>
+  <script type="module" src="components/menu.js"></script>
+  <script type="module" src="components/downloads.js"></script>
+  <script type="module" src="components/settings.js"></script>
+  <script type="module" src="components/webview-host.js"></script>
+  <script type="module" src="components/newtab.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

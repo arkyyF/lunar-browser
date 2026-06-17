@@ -1,0 +1,43 @@
+/* main.css — base structural styles. Theme colors live in moonlit-dark.css. */
+
+html, body { height: 100%; }
+
+/* Scrollbar styling (cross-platform) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(192, 200, 208, 0.2) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(192, 200, 208, 0.15);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(192, 200, 208, 0.3); }
+
+/* Focus ring (keyboard only) */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Selection */
+::selection { background: rgba(192, 200, 208, 0.25); color: inherit; }
+
+/* Drag region (for titlebar) */
+[data-tauri-drag-region] { -webkit-app-region: drag; cursor: default; }
+[data-tauri-drag-region] button,
+[data-tauri-drag-region] input,
+[data-tauri-drag-region] a { -webkit-app-region: no-drag; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Print styles (mainly for screenshots/exports from webviews) */
+@media print {
+  .titlebar, .sidebar, .palette, .downloads-panel, .menu-panel, .settings { display: none !important; }
+  .content { grid-template-columns: 1fr !important; }
+}

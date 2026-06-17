@@ -1,0 +1,86 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "Lunar Browser",
+  "version": "1.0.0",
+  "identifier": "io.lunar.browser",
+  "build": {
+    "frontendDist": "src",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Lunar Browser",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 900,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false,
+        "theme": "Dark",
+        "backgroundColor": "#0B0E14",
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 16,
+          "y": 18
+        }
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' tauri: asset:; img-src 'self' data: https: tauri: asset:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https: wss: tauri: ipc: http://ipc.localhost; frame-src https:; frame-ancestors 'none'",
+      "capabilities": ["main-capability"]
+    },
+    "macOSPrivateApi": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis", "appimage", "deb", "app", "dmg"],
+    "icon": [
+      "src-tauri/icons/32x32.png",
+      "src-tauri/icons/128x128.png",
+      "src-tauri/icons/128x128@2x.png",
+      "src-tauri/icons/icon.icns",
+      "src-tauri/icons/icon.ico"
+    ],
+    "resources": [
+      "src-tauri/resources/*"
+    ],
+    "publisher": "Lunar",
+    "category": "Browser",
+    "shortDescription": "A memory-efficient, privacy-first web browser.",
+    "longDescription": "Lunar Browser is a memory-efficient, privacy-first web browser built on Tauri + Rust. It uses an aggressive tab suspension strategy to keep memory usage under 1.5GB even with 20+ tabs open.",
+    "copyright": "© 2026 Lunar Browser Contributors",
+    "macOS": {
+      "frameworks": [],
+      "signingIdentity": null,
+      "entitlements": null
+    },
+    "windows": {
+      "wix": {
+        "language": "en-US"
+      },
+      "nsis": {
+        "installerIcon": "src-tauri/icons/icon.ico",
+        "installMode": "currentUser"
+      }
+    },
+    "linux": {
+      "deb": {
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0"]
+      },
+      "appimage": {
+        "bundleMediaFramework": true
+      }
+    }
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
+  }
+}
